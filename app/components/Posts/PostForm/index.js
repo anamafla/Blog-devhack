@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
+import Dialog from '@material-ui/core/Dialog';
+import DialogActions from '@material-ui/core/DialogActions';
+import DialogContent from '@material-ui/core/DialogContent';
+import DialogContentText from '@material-ui/core/DialogContentText';
+import DialogTitle from '@material-ui/core/DialogTitle';
 import { fromJS } from 'immutable';
-import { TitleContainer, BodyContainer, StyledTextField, SaveButton } from './styles';
+import { TitleContainer, BodyContainer, StyledTextField, SaveButton, CancelButton } from './styles';
 
 class PostForm extends Component {
 
@@ -12,6 +17,8 @@ class PostForm extends Component {
 
   static propTypes = {
     createPost: PropTypes.func.isRequired,
+    handleClose: PropTypes.func.isRequired,
+    showForm: PropTypes.bool.isRequired,
   }
 
   state = {
@@ -19,43 +26,72 @@ class PostForm extends Component {
   };
 
   onChange = (value, key) => {
-    const postState = this.state.postState.set(key, value);
+    const postState =
+      key === 'title' && value === '' ?
+        this.state.postState.withMutations(map => {
+          map.set(key, value).set('body', '');
+        }) :
+         this.state.postState.set(key, value);
     this.setState({ postState });
   }
 
+  handleClickOpen = () => {
+    this.setState({ open: true });
+  }
+
+
   createPost = () => {
     const { createPost } = this.props;
+    console.log('createPost', createPost);
     createPost(this.state.postState.set('date', new Date()));
   }
 
   validateForm = () => this.state.postState.get('title') !== '';
 
+  handleClose = () => this.props.handleClose(false);
+
   render() {
-    console.log(this.state.title);
+    console.log(this.state.postState.get('title'));
     return (
       <div>
-        <TitleContainer>
-          <StyledTextField
-            label="Title"
-            value={this.state.title}
-            onChange={e => this.onChange(e.target.value, 'title')}
-            margin="normal"
-          />
-        </TitleContainer>
-        <BodyContainer>
-          <StyledTextField
-            label="Body"
-            value={this.state.body}
-            onChange={e => this.onChange(e.target.value, 'body')}
-            margin="normal"
-            disabled={!this.validateForm()}
-          />
-        </BodyContainer>
-        <div>
-          <SaveButton onClick={this.createPost}>
+        <Dialog
+          open={this.props.showForm}
+          onClose={this.handleClose}
+        >
+          <DialogTitle>POST</DialogTitle>
+          <DialogContent>
+            <TitleContainer>
+              <StyledTextField
+                label="Title"
+                value={this.state.postState.get('title')}
+                onChange={e => this.onChange(e.target.value, 'title')}
+                margin="normal"
+              />
+            </TitleContainer>
+            {this.validateForm() ? (
+              <BodyContainer>
+                <StyledTextField
+                  label="Body"
+                  value={this.state.postState.get('body')}
+                  onChange={e => this.onChange(e.target.value, 'body')}
+                  margin="normal"
+                  disabled={!this.validateForm()}
+                />
+              </BodyContainer>
+          ) : null}
+          </DialogContent>
+          <DialogActions>
+            <SaveButton
+              onClick={this.createPost}
+              disabled={this.state.postState.get('body') === ''}
+            >
             Save
-          </SaveButton>
-        </div>
+            </SaveButton>
+            <CancelButton onClick={this.handleClose}>
+            Cancel
+            </CancelButton>
+          </DialogActions>
+        </Dialog>
       </div>
     );
   }

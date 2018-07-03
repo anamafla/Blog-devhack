@@ -13,16 +13,32 @@ const tagsData = [
 class Tags extends Component {
 
   state = {
-    tags: [...tagsData],
+    tags: [],
   };
 
-  createTag = tag => {
-    console.log(tag);
-    const tagWithId = Object.assign({}, tag, { id: this.state.tags.length + 1 });
-    const tags = this.state.tags.concat(tagWithId);
-    this.setState({ tags });
-    console.log(tags);
-      // this.setState({ posts });
+  componentDidMount() {
+    fetch('https://devhack-blog-api.herokuapp.com/tags')
+      .then(response => response.json())
+        .then(tags => this.setState({ tags }));
+  }
+
+  createTag = async tag => {
+    const response = await fetch('https://devhack-blog-api.herokuapp.com/tags', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(tag.toJS()),
+    });
+  }
+
+  deleteTag = async id => {
+    const response = await fetch(`https://devhack-blog-api.herokuapp.com/tags/${id}`, {
+      method: 'DELETE',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    });
   }
 
   render() {

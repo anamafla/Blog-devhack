@@ -19,5 +19,9 @@ export const StyledTextField = styled(TextField)`
 `;
 
 export const SaveButton = styled(Button)`
-  
+
+`;
+
+export const CancelButton = styled(Button)`
+
 `;
